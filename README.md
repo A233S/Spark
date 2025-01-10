@@ -4,6 +4,8 @@
 
 <h1 align="center">Spark</h1>
 
+<h1 align="center">这个fock让客户端跳过证书验证（如果使用了tls）</h1>
+
 **Spark** is a free, safe, open-source, web-based, cross-platform and full-featured RAT (Remote Administration Tool)
 that allow you to control all your devices via browser anywhere.
 
