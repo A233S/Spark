@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"crypto/tls"
 
 	ws "github.com/gorilla/websocket"
 	"github.com/kataras/golog"
@@ -62,23 +63,36 @@ func Start() {
 }
 
 func connectWS() (*common.Conn, error) {
-	wsConn, wsResp, err := ws.DefaultDialer.Dial(config.GetBaseURL(true)+`/ws`, http.Header{
+	// 创建自定义的 WebSocket Dialer
+	dialer := *ws.DefaultDialer
+	// 配置 TLSClientConfig 以跳过证书验证
+	dialer.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	// 使用自定义的 Dialer 来连接 WebSocket
+	wsConn, wsResp, err := dialer.Dial(config.GetBaseURL(true)+`/ws`, http.Header{
 		`UUID`: []string{config.Config.UUID},
 		`Key`:  []string{config.Config.Key},
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	// 获取 Secret Header
 	header, find := wsResp.Header[`Secret`]
 	if !find || len(header) == 0 {
 		return nil, errNoSecretHeader
 	}
+
+	// 解码 Secret
 	secret, err := hex.DecodeString(header[0])
 	if err != nil {
 		return nil, err
 	}
+
+	// 创建并返回连接对象
 	return common.CreateConn(wsConn, secret), nil
 }
+
 
 func reportWS(wsConn *common.Conn) error {
 	device, err := GetDevice()
