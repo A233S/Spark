@@ -4,6 +4,7 @@ import (
 	"Spark/client/config"
 	"Spark/modules"
 	"Spark/utils"
+	"crypto/tls"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -34,7 +35,11 @@ func CreateConn(wsConn *ws.Conn, secret []byte) *Conn {
 }
 
 func CreateClient() *req.Client {
-	return req.C().SetUserAgent(`SPARK COMMIT: ` + config.Commit)
+	return req.C().
+		SetTLSClientConfig(&tls.Config{
+			InsecureSkipVerify: true, // 跳过证书验证
+		}).
+		SetUserAgent(`SPARK COMMIT: ` + config.Commit)
 }
 
 func (wsConn *Conn) SendData(data []byte) error {
